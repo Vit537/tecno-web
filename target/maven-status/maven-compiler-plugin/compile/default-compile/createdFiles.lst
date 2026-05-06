@@ -4,12 +4,14 @@ servicargo\model\Almacen.class
 servicargo\dao\AlmacenDao.class
 servicargo\mail\Pop3Client$MailMessage.class
 servicargo\model\Usuario.class
+servicargo\dao\VentaDao.class
 servicargo\App.class
 servicargo\commands\CommandProcessor.class
 servicargo\mail\MailConfig.class
 servicargo\util\BodyParser.class
 servicargo\dao\UsuarioDao.class
 servicargo\db\SchemaInitializer.class
+servicargo\dao\PagoDao.class
 servicargo\db\DbConfig.class
 servicargo\mail\Pop3Client.class
 servicargo\mail\SmtpClient.class

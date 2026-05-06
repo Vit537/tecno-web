@@ -26,7 +26,7 @@ public class UsuarioDao {
             return "Error: faltan campos obligatorios (ci, nombre, apellido, rol, email, password).";
         }
 
-        String sql = "INSERT INTO usuarios (ci, nombre, apellido, rol, telefono, email, password) " +
+        String sql = "INSERT INTO usuario (ci, nombre, apellido, rol, telefono, email, password) " +
             "VALUES (?, ?, ?, ?, ?, ?, ?) RETURNING id";
 
         try (Connection conn = DbConnection.open();
@@ -52,7 +52,7 @@ public class UsuarioDao {
 
     public String list(String rol) {
         StringBuilder sb = new StringBuilder();
-        String sql = "SELECT id, ci, nombre, apellido, rol, telefono, email FROM usuarios";
+        String sql = "SELECT id, ci, nombre, apellido, rol, telefono, email FROM usuario";
         if (!isBlank(rol)) {
             sql += " WHERE rol = ?";
         }
@@ -92,8 +92,8 @@ public class UsuarioDao {
 
         boolean isNumeric = idOrCi.chars().allMatch(Character::isDigit);
         String sql = isNumeric
-            ? "SELECT id, ci, nombre, apellido, rol, telefono, email FROM usuarios WHERE id = ?"
-            : "SELECT id, ci, nombre, apellido, rol, telefono, email FROM usuarios WHERE ci = ?";
+            ? "SELECT id, ci, nombre, apellido, rol, telefono, email FROM usuario WHERE id = ?"
+            : "SELECT id, ci, nombre, apellido, rol, telefono, email FROM usuario WHERE ci = ?";
 
         try (Connection conn = DbConnection.open();
              PreparedStatement ps = conn.prepareStatement(sql)) {
@@ -140,7 +140,7 @@ public class UsuarioDao {
             return "Error: no hay campos para actualizar.";
         }
 
-        StringBuilder sql = new StringBuilder("UPDATE usuarios SET ");
+        StringBuilder sql = new StringBuilder("UPDATE usuario SET ");
         for (int i = 0; i < fields.size(); i++) {
             if (i > 0) sql.append(", ");
             sql.append(fields.get(i)).append(" = ?");
@@ -168,7 +168,7 @@ public class UsuarioDao {
         if (isBlank(id)) {
             return "Error: se requiere id para eliminar.";
         }
-        String sql = "DELETE FROM usuarios WHERE id = ?";
+        String sql = "DELETE FROM usuario WHERE id = ?";
         try (Connection conn = DbConnection.open();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, Integer.parseInt(id));

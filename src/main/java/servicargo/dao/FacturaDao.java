@@ -2,6 +2,7 @@ package servicargo.dao;
 
 import servicargo.db.DbConnection;
 
+import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -10,44 +11,39 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-public class AlmacenDao {
+public class FacturaDao {
     public String insert(Map<String, String> data) {
-        String nombre = data.get("nombre");
-        String direccion = data.get("direccion");
-        String capacidad = data.get("capacidad");
-        String responsable = data.get("responsable");
-        String telefono = data.get("telefono");
+        String ventaId = data.get("venta_id");
+        String nit = data.get("nit");
+        String razonSocial = data.get("razon_social");
+        String total = data.get("total");
 
-        if (isBlank(nombre) || isBlank(direccion) || isBlank(capacidad) || isBlank(responsable)) {
-            return "Error: faltan campos obligatorios (nombre, direccion, capacidad, responsable).";
+        if (isBlank(ventaId) || isBlank(nit) || isBlank(razonSocial) || isBlank(total)) {
+            return "Error: faltan campos obligatorios (venta_id, nit, razon_social, total).";
         }
 
-        String sql = "INSERT INTO almacen (nombre, direccion, capacidad, responsable, telefono) " +
-            "VALUES (?, ?, ?, ?, ?) RETURNING id";
-
+        String sql = "INSERT INTO factura (venta_id, nit, razon_social, total) VALUES (?, ?, ?, ?) RETURNING id";
         try (Connection conn = DbConnection.open();
              PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, nombre);
-            ps.setString(2, direccion);
-            ps.setInt(3, Integer.parseInt(capacidad));
-            ps.setString(4, responsable);
-            ps.setString(5, telefono);
+            ps.setInt(1, Integer.parseInt(ventaId));
+            ps.setString(2, nit);
+            ps.setString(3, razonSocial);
+            ps.setBigDecimal(4, new BigDecimal(total));
             ResultSet rs = ps.executeQuery();
             if (rs.next()) {
-                int id = rs.getInt(1);
-                return "Almacen creado. ID: " + id;
+                return "Factura creada. ID: " + rs.getInt(1);
             }
-            return "Error: no se pudo crear el almacen.";
+            return "Error: no se pudo crear factura.";
         } catch (SQLException e) {
             return "Error BD: " + e.getMessage();
         } catch (NumberFormatException e) {
-            return "Error: capacidad debe ser numero.";
+            return "Error: venta_id y total deben ser numeros.";
         }
     }
 
     public String list() {
         StringBuilder sb = new StringBuilder();
-        String sql = "SELECT id, nombre, direccion, capacidad, responsable, telefono FROM almacen ORDER BY id";
+        String sql = "SELECT id, venta_id, nit, razon_social, total, fecha FROM factura ORDER BY id";
         try (Connection conn = DbConnection.open();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ResultSet rs = ps.executeQuery();
@@ -55,15 +51,15 @@ public class AlmacenDao {
             while (rs.next()) {
                 count++;
                 sb.append("ID: ").append(rs.getInt("id")).append("\n");
-                sb.append("Nombre: ").append(rs.getString("nombre")).append("\n");
-                sb.append("Direccion: ").append(rs.getString("direccion")).append("\n");
-                sb.append("Capacidad: ").append(rs.getInt("capacidad")).append("\n");
-                sb.append("Responsable: ").append(rs.getString("responsable")).append("\n");
-                sb.append("Telefono: ").append(nvl(rs.getString("telefono"))).append("\n");
+                sb.append("Venta ID: ").append(rs.getInt("venta_id")).append("\n");
+                sb.append("NIT: ").append(rs.getString("nit")).append("\n");
+                sb.append("Razon Social: ").append(rs.getString("razon_social")).append("\n");
+                sb.append("Total: ").append(rs.getBigDecimal("total")).append("\n");
+                sb.append("Fecha: ").append(rs.getTimestamp("fecha")).append("\n");
                 sb.append("------------------\n");
             }
             if (count == 0) {
-                return "No hay almacenes.";
+                return "No hay facturas.";
             }
             return sb.toString();
         } catch (SQLException e) {
@@ -75,7 +71,7 @@ public class AlmacenDao {
         if (isBlank(id)) {
             return "Error: se requiere id.";
         }
-        String sql = "SELECT id, nombre, direccion, capacidad, responsable, telefono FROM almacen WHERE id = ?";
+        String sql = "SELECT id, venta_id, nit, razon_social, total, fecha FROM factura WHERE id = ?";
         try (Connection conn = DbConnection.open();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, Integer.parseInt(id));
@@ -83,14 +79,14 @@ public class AlmacenDao {
             if (rs.next()) {
                 StringBuilder sb = new StringBuilder();
                 sb.append("ID: ").append(rs.getInt("id")).append("\n");
-                sb.append("Nombre: ").append(rs.getString("nombre")).append("\n");
-                sb.append("Direccion: ").append(rs.getString("direccion")).append("\n");
-                sb.append("Capacidad: ").append(rs.getInt("capacidad")).append("\n");
-                sb.append("Responsable: ").append(rs.getString("responsable")).append("\n");
-                sb.append("Telefono: ").append(nvl(rs.getString("telefono"))).append("\n");
+                sb.append("Venta ID: ").append(rs.getInt("venta_id")).append("\n");
+                sb.append("NIT: ").append(rs.getString("nit")).append("\n");
+                sb.append("Razon Social: ").append(rs.getString("razon_social")).append("\n");
+                sb.append("Total: ").append(rs.getBigDecimal("total")).append("\n");
+                sb.append("Fecha: ").append(rs.getTimestamp("fecha")).append("\n");
                 return sb.toString();
             }
-            return "No se encontro almacen.";
+            return "No se encontro factura.";
         } catch (SQLException e) {
             return "Error BD: " + e.getMessage();
         }
@@ -104,17 +100,16 @@ public class AlmacenDao {
 
         List<String> fields = new ArrayList<>();
         List<String> values = new ArrayList<>();
-        addField(fields, values, "nombre", data.get("nombre"));
-        addField(fields, values, "direccion", data.get("direccion"));
-        addField(fields, values, "capacidad", data.get("capacidad"));
-        addField(fields, values, "responsable", data.get("responsable"));
-        addField(fields, values, "telefono", data.get("telefono"));
+        addField(fields, values, "venta_id", data.get("venta_id"));
+        addField(fields, values, "nit", data.get("nit"));
+        addField(fields, values, "razon_social", data.get("razon_social"));
+        addField(fields, values, "total", data.get("total"));
 
         if (fields.isEmpty()) {
             return "Error: no hay campos para actualizar.";
         }
 
-        StringBuilder sql = new StringBuilder("UPDATE almacen SET ");
+        StringBuilder sql = new StringBuilder("UPDATE factura SET ");
         for (int i = 0; i < fields.size(); i++) {
             if (i > 0) sql.append(", ");
             sql.append(fields.get(i)).append(" = ?");
@@ -124,23 +119,27 @@ public class AlmacenDao {
         try (Connection conn = DbConnection.open();
              PreparedStatement ps = conn.prepareStatement(sql.toString())) {
             int idx = 1;
-            for (String val : values) {
-                if ("capacidad".equals(fields.get(idx - 1))) {
-                    ps.setInt(idx++, Integer.parseInt(val));
+            for (int i = 0; i < values.size(); i++) {
+                String field = fields.get(i);
+                String value = values.get(i);
+                if ("venta_id".equals(field)) {
+                    ps.setInt(idx++, Integer.parseInt(value));
+                } else if ("total".equals(field)) {
+                    ps.setBigDecimal(idx++, new BigDecimal(value));
                 } else {
-                    ps.setString(idx++, val);
+                    ps.setString(idx++, value);
                 }
             }
             ps.setInt(idx, Integer.parseInt(id));
             int updated = ps.executeUpdate();
             if (updated == 0) {
-                return "No se encontro almacen con ID: " + id;
+                return "No se encontro factura con ID: " + id;
             }
-            return "Almacen actualizado. ID: " + id;
+            return "Factura actualizada. ID: " + id;
         } catch (SQLException e) {
             return "Error BD: " + e.getMessage();
         } catch (NumberFormatException e) {
-            return "Error: capacidad debe ser numero.";
+            return "Error: venta_id y total deben ser numeros.";
         }
     }
 
@@ -148,15 +147,15 @@ public class AlmacenDao {
         if (isBlank(id)) {
             return "Error: se requiere id para eliminar.";
         }
-        String sql = "DELETE FROM almacen WHERE id = ?";
+        String sql = "DELETE FROM factura WHERE id = ?";
         try (Connection conn = DbConnection.open();
              PreparedStatement ps = conn.prepareStatement(sql)) {
             ps.setInt(1, Integer.parseInt(id));
             int deleted = ps.executeUpdate();
             if (deleted == 0) {
-                return "No se encontro almacen con ID: " + id;
+                return "No se encontro factura con ID: " + id;
             }
-            return "Almacen eliminado. ID: " + id;
+            return "Factura eliminada. ID: " + id;
         } catch (SQLException e) {
             return "Error BD: " + e.getMessage();
         }
@@ -171,9 +170,5 @@ public class AlmacenDao {
 
     private static boolean isBlank(String value) {
         return value == null || value.trim().isEmpty();
-    }
-
-    private static String nvl(String value) {
-        return value == null ? "" : value;
     }
 }

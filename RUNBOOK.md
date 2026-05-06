@@ -10,7 +10,7 @@ Desde la carpeta "primer parcial":
 
   mvn -q -DskipTests compile exec:java "-Dexec.mainClass=servicargo.App"
 
-Esto crea las tablas usuarios y almacenes en la BD configurada.
+Esto crea todas las tablas del sistema en la BD configurada.
 
 3) Ejecutar el daemon de correo
 Desde la carpeta "primer parcial":
@@ -71,6 +71,116 @@ Body:
 
 Respuesta esperada:
   Almacen creado. ID: <numero>
+
+Ejemplo 4 - Crear producto
+Subject:
+  INSPRO[]
+
+Body:
+  codigo=P-001
+  nombre=Caja de carton
+  descripcion=Paquete ligero
+  precio=25.50
+
+Respuesta esperada:
+  Producto creado. ID: <numero>
+
+Ejemplo 5 - Registrar inventario
+Subject:
+  INSINV[]
+
+Body:
+  producto_id=1
+  almacen_id=1
+  cantidad=50
+
+Respuesta esperada:
+  Inventario creado. ID: <numero>
+
+Ejemplo 6 - Crear encomienda
+Subject:
+  INSENC[]
+
+Body:
+  cliente_id=1
+  producto_id=1
+  almacen_id=1
+  descripcion=Paquete a Santa Cruz
+  peso=2.5
+  estado=RECIBIDO
+
+Respuesta esperada:
+  Encomienda creada. ID: <numero>
+
+Ejemplo 7 - Crear cotizacion
+Subject:
+  INSCOT[]
+
+Body:
+  cliente_id=1
+  vendedor_id=2
+  producto_id=1
+  cantidad=3
+  precio_unit=25.50
+  estado=PENDIENTE
+
+Respuesta esperada:
+  Cotizacion creada. ID: <numero> Total: <monto>
+
+Ejemplo 8 - Crear venta
+Subject:
+  INSVEN[]
+
+Body:
+  cliente_id=1
+  vendedor_id=2
+  cotizacion_id=1
+  total=76.50
+  estado=PENDIENTE
+
+Respuesta esperada:
+  Venta creada. ID: <numero>
+
+Ejemplo 9 - Registrar pago
+Subject:
+  INSPAG[]
+
+Body:
+  venta_id=1
+  monto=76.50
+  metodo=EFECTIVO
+
+Respuesta esperada:
+  Pago registrado. ID: <numero>
+
+Ejemplo 10 - Crear factura
+Subject:
+  INSFAC[]
+
+Body:
+  venta_id=1
+  nit=1234567
+  razon_social=Empresa Demo SRL
+  total=76.50
+
+Respuesta esperada:
+  Factura creada. ID: <numero>
+
+Ejemplo 11 - Reporte de ventas
+Subject:
+  REPVEN[]
+
+Respuesta esperada:
+  Total ventas: <numero>
+  Monto total: <monto>
+
+Ejemplo 12 - Reporte de encomiendas
+Subject:
+  REPENC[]
+
+Respuesta esperada:
+  RECIBIDO: <numero>
+  ...
 
 5) Notas
 - Los comandos son insensibles a mayusculas/minusculas en el Subject.
