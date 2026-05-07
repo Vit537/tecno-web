@@ -1,31 +1,31 @@
 package servicargo.mail;
 
-import servicargo.commands.CommandProcessor;
-
 import java.util.List;
 
 public class MailDaemon {
     public static void main(String[] args) {
-        CommandProcessor processor = new CommandProcessor();
-        SmtpClient smtp = new SmtpClient(MailConfig.SMTP_SERVER, MailConfig.SMTP_PORT);
+        CommandRouter router = new CommandRouter();
+        MailSender sender = new MailSender(MailConfig.SMTP_SERVER, MailConfig.SMTP_PORT);
 
         while (true) {
-            try (Pop3Client pop3 = new Pop3Client(
+            try (MailReader reader = new MailReader(
                 MailConfig.POP3_SERVER,
                 MailConfig.POP3_PORT,
                 MailConfig.MAIL_USER,
                 MailConfig.MAIL_PASS)) {
 
-                pop3.open();
-                List<Integer> ids = pop3.listMessageIds();
+                reader.open();
+                List<Integer> ids = reader.listMessageIds();
                 for (int id : ids) {
-                    Pop3Client.MailMessage msg = pop3.retrieve(id);
-                    String response = processor.process(msg.subject, msg.body);
+                    Pop3Client.MailMessage msg = reader.retrieve(id);
+                    String command = SubjectParser.extraerComando(msg.subject);
+                    List<String> params = SubjectParser.extraerParametros(msg.subject);
+                    String response = router.process(command, params);
                     String subject = "RE: " + msg.subject;
-                    smtp.send(MailConfig.MAIL_FROM, msg.from, subject, response);
-                    pop3.delete(id);
+                    sender.send(MailConfig.MAIL_FROM, msg.from, subject, response);
+                    reader.delete(id);
                 }
-                pop3.quit();
+                reader.quit();
 
                 Thread.sleep(10000);
             } catch (Exception e) {

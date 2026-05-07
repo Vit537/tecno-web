@@ -77,7 +77,6 @@ public class Pop3Client implements AutoCloseable {
         String from = "";
         String subject = "";
         boolean inBody = false;
-        StringBuilder body = new StringBuilder();
 
         while ((line = in.readLine()) != null) {
             if (line.equals(".")) break;
@@ -93,11 +92,11 @@ public class Pop3Client implements AutoCloseable {
                     subject = line.substring(8).trim();
                 }
             } else {
-                body.append(line).append("\n");
+                // Body is intentionally ignored per new subject-only format.
             }
         }
 
-        return new MailMessage(from, subject, body.toString().trim(), msgNum);
+        return new MailMessage(from, subject, "", msgNum);
     }
 
     public void delete(int msgNum) throws IOException {
